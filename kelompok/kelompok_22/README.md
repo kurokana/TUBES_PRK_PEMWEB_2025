@@ -4,4 +4,4 @@ NAMA ANGGOTA
 3. Nadjwa Aprisda (najwaaprisda)
 4. Gerald (geraldilyas)
 
-Sistem Pelaporan & Pemantauan Masalah Lingkungan Berbasis Web 
+Sistem Pelaporan & Pemantauan Masalah Lingkungan Berbasis Web
