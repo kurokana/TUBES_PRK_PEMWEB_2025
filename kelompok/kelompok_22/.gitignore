@@ -1,0 +1,38 @@
+# Ignore uploaded files
+uploads/*
+!uploads/.gitkeep
+
+# Ignore config if contains sensitive data
+includes/config.php.local
+config/.env
+
+# Keep folder structure
+!assets/.gitkeep
+!css/.gitkeep
+!js/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Log files
+*.log
+error_log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# PHP
+vendor/
+composer.lock
