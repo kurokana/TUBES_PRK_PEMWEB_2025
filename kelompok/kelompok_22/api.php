@@ -20,11 +20,14 @@
 require_once 'includes/config.php';
 
 function getPutData() {
+    // Membaca isi body request mentah
     $input = file_get_contents('php://input'); 
     $putData = [];
     
+    // Menguraikan data yang berbentuk URL-encoded (seperti form data)
     parse_str($input, $putData); 
-
+    
+    // Jika data adalah JSON (opsional, tapi bagus untuk masa depan)
     if (empty($putData)) {
         $json = json_decode($input, true);
         if ($json !== null) {
@@ -36,6 +39,7 @@ function getPutData() {
 
 $action = $_GET['action'] ?? '';
 
+// Routing berdasarkan method dan action
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
         handleGet($action);
@@ -57,23 +61,30 @@ switch ($_SERVER['REQUEST_METHOD']) {
         jsonResponse(false, null, 'Method not allowed', 405);
 }
 
+/**
+ * Handle GET requests
+ */
 function handleGet($action) {
     $conn = getDBConnection();
     
     switch ($action) {
         case 'getReports':
+            // ... (Logic getReports) ...
             jsonResponse(false, null, 'Not implemented', 501);
             break;
         
         case 'getReport':
+            // ... (Logic getReport) ...
             jsonResponse(false, null, 'Not implemented', 501);
             break;
         
         case 'getStats':
+            // ... (Logic getStats) ...
             jsonResponse(false, null, 'Not implemented', 501);
             break;
             
         case 'getPetugas':
+            // Endpoint untuk mengambil daftar semua user dengan role 'petugas'
             $query = "SELECT id, full_name, email 
                       FROM users 
                       WHERE role = 'petugas' 
@@ -88,6 +99,7 @@ function handleGet($action) {
             
             $petugas_list = [];
             while ($row = $result->fetch_assoc()) {
+                // Konversi id menjadi string agar konsisten di JS
                 $row['id'] = (string)$row['id']; 
                 $petugas_list[] = $row;
             }
@@ -100,15 +112,24 @@ function handleGet($action) {
     }
 }
 
+/**
+ * Handle POST requests
+ */
 function handlePost($action) {
+    // ... (Logic createReport) ...
     jsonResponse(false, null, 'Invalid action', 400);
 }
 
+/**
+ * Handle PUT requests
+ */
 function handlePut($action) {
     $conn = getDBConnection();
     
+    // Parse PUT data
     parse_str(file_get_contents("php://input"), $putData);
     
+    // ASUMSI KRITIS: ID yang dikirim dari frontend adalah PRIMARY KEY (integer)
     $reportPkeyId = (int)($putData['id'] ?? $putData['report_id'] ?? 0); 
     
     if ($reportPkeyId === 0 && in_array($action, ['assignReport', 'validateReport', 'rejectValidation'])) {
@@ -118,13 +139,15 @@ function handlePut($action) {
     
     switch ($action) {
         case 'updateStatus':
+            // ... (Logic updateStatus) ...
             jsonResponse(false, null, 'Not implemented', 501);
             break;
             
         case 'assignReport':
+            // Pastikan $putData sudah diisi
             $putData = getPutData();
-            $reportPkeyId = (int)($putData['id'] ?? 0); 
-            $petugasId = sanitizeInput($putData['assigned_to'] ?? ''); 
+            $reportPkeyId = (int)($putData['id'] ?? 0); // Primary Key ID
+            $petugasId = sanitizeInput($putData['assigned_to'] ?? ''); // Bisa berupa ID Petugas (string) atau "" (Kosongkan)
 
             if ($reportPkeyId <= 0) {
                 jsonResponse(false, null, 'Invalid Report ID.', 400);
@@ -132,6 +155,7 @@ function handlePut($action) {
             }
 
             if (!empty($petugasId)) {
+                // --- KASUS 1: PENUGASAN ---
                 $statusToUpdate = 'Diproses';
                 $updateQuery = "UPDATE reports SET assigned_to = ?, status = ?, updated_at = NOW() WHERE id = ?";
                 $stmt = $conn->prepare($updateQuery);
@@ -141,12 +165,16 @@ function handlePut($action) {
                     return;
                 }
 
-                $petugasIdInt = (int)$petugasId; 
+                // --- PERBAIKAN FATAL ERROR: Buat variabel integer terpisah untuk bind_param ---
+                $petugasIdInt = (int)$petugasId; // Pastikan ini adalah variabel, bukan hasil cast langsung di bind_param
                 
-                $stmt->bind_param('isi', $petugasIdInt, $statusToUpdate, $reportPkeyId); 
+                // Bind parameter: i (integer: petugas ID), s (string: status), i (integer: report ID)
+                $stmt->bind_param('isi', $petugasIdInt, $statusToUpdate, $reportPkeyId); // Menggunakan variabel $petugasIdInt
                 
             } else {
+                // --- KASUS 2: PEMBATALAN PENUGASAN (SET NULL) ---
                 $statusToUpdate = 'Menunggu';
+                // Query disederhanakan karena assigned_to langsung diatur ke NULL
                 $updateQuery = "UPDATE reports SET assigned_to = NULL, status = ?, updated_at = NOW() WHERE id = ?";
                 $stmt = $conn->prepare($updateQuery);
                 
@@ -155,9 +183,11 @@ function handlePut($action) {
                     return;
                 }
                 
+                // Bind parameter: s (string: status), i (integer: report ID)
                 $stmt->bind_param('si', $statusToUpdate, $reportPkeyId);
             }
 
+            // Eksekusi statement
             if ($stmt->execute() && $stmt->affected_rows > 0) {
                 jsonResponse(true, null, 'Laporan berhasil ditugaskan atau status diubah.');
             } else {
@@ -179,8 +209,11 @@ function handlePut($action) {
 
             $finalStatus = 'Tuntas'; 
             
+            // Simpan catatan ke admin_notes dan ubah status menjadi Tuntas
+            // Terima laporan dengan status 'Selesai' atau 'Diproses'
             $stmt = $conn->prepare("UPDATE reports SET status = ?, admin_notes = ?, updated_at = NOW() WHERE id = ? AND (status = 'Selesai' OR status = 'Diproses')");
-
+            
+            // --- PERBAIKAN SAFETY: CEK PREPARE ---
             if ($stmt === false) {
                 jsonResponse(false, null, 'SQL Prepare Error (Validate): ' . $conn->error, 500);
                 return;
@@ -191,6 +224,7 @@ function handlePut($action) {
             if ($stmt->execute() && $stmt->affected_rows > 0) {
                 jsonResponse(true, null, "Laporan berhasil divalidasi dan status diubah menjadi 'Tuntas'.");
             } else {
+                // Ini terjadi jika laporan tidak ditemukan atau statusnya bukan 'Selesai' atau 'Diproses'
                 jsonResponse(false, null, "Gagal memvalidasi. Pastikan status laporan masih 'Selesai' atau 'Diproses'.", 500);
             }
             $stmt->close();
@@ -213,8 +247,11 @@ function handlePut($action) {
             
             $rejectStatus = 'Ditolak'; 
             
+            // Simpan catatan penolakan ke admin_notes dan ubah status menjadi Ditolak
+            // Tolak laporan dengan status 'Selesai' atau 'Diproses'
             $stmt = $conn->prepare("UPDATE reports SET status = ?, admin_notes = ?, updated_at = NOW() WHERE id = ? AND (status = 'Selesai' OR status = 'Diproses')");
             
+            // --- PERBAIKAN SAFETY: CEK PREPARE ---
             if ($stmt === false) {
                 jsonResponse(false, null, 'SQL Prepare Error (Reject): ' . $conn->error, 500);
                 return;
@@ -225,6 +262,7 @@ function handlePut($action) {
             if ($stmt->execute() && $stmt->affected_rows > 0) {
                 jsonResponse(true, null, "Validasi ditolak. Status diubah menjadi 'Ditolak'.");
             } else {
+                // Ini terjadi jika laporan tidak ditemukan atau statusnya bukan 'Selesai' atau 'Diproses'
                 jsonResponse(false, null, "Gagal menolak validasi. Pastikan status laporan masih 'Selesai' atau 'Diproses'.", 500);
             }
             $stmt->close();
@@ -235,7 +273,11 @@ function handlePut($action) {
     }
 }
 
+/**
+ * Handle DELETE requests
+ */
 function handleDelete($action) {
+    // ... (Logic deleteReport) ...
     jsonResponse(false, null, 'Invalid action', 400);
 }
 ?>
