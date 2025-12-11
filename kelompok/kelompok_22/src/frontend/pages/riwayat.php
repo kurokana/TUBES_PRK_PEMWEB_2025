@@ -2,8 +2,8 @@
 /**
  * Halaman Riwayat Laporan Pelapor
  */
-require_once 'includes/config.php';
-require_once 'includes/auth.php';
+require_once '../../backend/utils/config.php';
+require_once '../../backend/middleware/auth.php';
 
 requireLogin();
 
@@ -86,7 +86,7 @@ $stats_stmt->close();
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/../assets/css/styles.css">
     
     <style>
         body { font-family: 'Inter', sans-serif; }

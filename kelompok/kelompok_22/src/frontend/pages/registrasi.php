@@ -1,4 +1,4 @@
-<?php require_once 'includes/auth.php'; redirectIfLoggedIn(); ?>
+<?php require_once '../../backend/middleware/auth.php'; redirectIfLoggedIn(); ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -85,7 +85,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     btn.disabled = true;
 
     try {
-        const res = await fetch('includes/auth.php', { method: 'POST', body: formData });
+        const res = await fetch('../../backend/middleware/auth.php', { method: 'POST', body: formData });
         const data = await res.json();
         
         if (data.success) {
