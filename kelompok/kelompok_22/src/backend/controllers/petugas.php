@@ -4,17 +4,17 @@ if (isset($_GET['logout'])) {
     if (session_status() === PHP_SESSION_NONE) session_start();
     require_once __DIR__ . '/../middleware/auth.php';
     logoutUser();
-    header('Location: index.php');
+    header('Location: /login.php');
     exit;
 }
 
-require_once '../middleware/auth.php';
+require_once __DIR__ . '/../middleware/auth.php';
 requireLogin();
 $userInfo = getAdminInfo();
 
 if (!$userInfo) { header('Location: ?logout=1'); exit; }
 $userRole = $_SESSION['role'] ?? $userInfo['role'] ?? '';
-if ($userRole !== 'petugas' && $userRole !== 'admin') { header('Location: index.html'); exit; }
+if ($userRole !== 'petugas' && $userRole !== 'admin') { header('Location: /'); exit; }
 ?>
 <!DOCTYPE html>
 <html lang="id">

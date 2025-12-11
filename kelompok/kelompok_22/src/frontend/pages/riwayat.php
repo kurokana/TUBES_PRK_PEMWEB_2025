@@ -2,14 +2,14 @@
 /**
  * Halaman Riwayat Laporan Pelapor
  */
-require_once '../../backend/utils/config.php';
-require_once '../../backend/middleware/auth.php';
+require_once __DIR__ . '/../../backend/utils/config.php';
+require_once __DIR__ . '/../../backend/middleware/auth.php';
 
 requireLogin();
 
 // Hanya pelapor yang bisa akses
 if ($_SESSION['role'] !== 'pelapor') {
-    header('Location: index.php');
+    header('Location: /');
     exit;
 }
 
@@ -20,7 +20,7 @@ if (!$user) {
 }
 
 // Get user's reports
-global $conn;
+$conn = getDBConnection();
 $user_id = $user['id'];
 
 // Filter parameters

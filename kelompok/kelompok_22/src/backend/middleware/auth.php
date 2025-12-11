@@ -137,7 +137,7 @@ function getUserInfo() {
 
 function requireLogin() {
     if (!isUserLoggedIn()) {
-        header('Location: login.php');
+        header('Location: /login.php');
         exit;
     }
 }
@@ -189,13 +189,13 @@ function redirectIfLoggedIn() {
     if (isUserLoggedIn()) {
         $role = $_SESSION['role'] ?? 'warga';
         if ($role === 'super_admin') {
-            header('Location: super_admin.php');
+            header('Location: /super_admin.php');
         } elseif ($role === 'admin') {
-            header('Location: admin.php');
+            header('Location: /admin.php');
         } elseif ($role === 'petugas') {
-            header('Location: petugas.php');
+            header('Location: /petugas.php');
         } else {
-            header('Location: index.html'); 
+            header('Location: /pelapor.php');
         }
         exit;
     }
@@ -203,11 +203,15 @@ function redirectIfLoggedIn() {
 
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: login.php');
+    header('Location: /login.php');
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+// Only handle auth-related POST actions when accessed directly (not when included)
+// Check if this file is being accessed directly as the main script
+$isDirectAccess = (realpath($_SERVER['SCRIPT_FILENAME']) === realpath(__FILE__));
+
+if ($isDirectAccess && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
     
     $action = $_POST['action'];
@@ -254,4 +258,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             ]);
             exit;
     }
+}
+
+// Alias functions for backward compatibility
+function isLoggedIn() {
+    return isUserLoggedIn();
+}
+
+function getCurrentUser() {
+    return getUserInfo();
 }

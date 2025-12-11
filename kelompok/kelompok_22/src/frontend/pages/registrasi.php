@@ -1,4 +1,4 @@
-<?php require_once '../../backend/middleware/auth.php'; redirectIfLoggedIn(); ?>
+<?php require_once __DIR__ . '/../../backend/middleware/auth.php'; redirectIfLoggedIn(); ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -58,7 +58,7 @@
         </form>
 
         <p class="text-center text-sm text-slate-500 mt-6">
-            Sudah punya akun? <a href="login.php" class="text-emerald-600 font-bold hover:underline">Masuk disini</a>
+            Sudah punya akun? <a href="/login.php" class="text-emerald-600 font-bold hover:underline">Masuk disini</a>
         </p>
         <div class="text-center mt-4">
             <a href="index.php" class="text-xs text-slate-400 hover:text-slate-600">Kembali ke Beranda</a>
@@ -90,7 +90,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         
         if (data.success) {
             alert('Registrasi Berhasil! Silakan login.');
-            window.location.href = 'login.php';
+            window.location.href = '/login.php';
         } else {
             alert('Error: ' + data.message);
         }

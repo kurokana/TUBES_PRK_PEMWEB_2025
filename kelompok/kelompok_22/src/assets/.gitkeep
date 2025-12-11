@@ -1,9 +1,0 @@
-# Assets Directory
-
-Folder ini untuk menyimpan asset statis seperti:
-- Logo / icon
-- Images
-- Illustrations
-- Other static files
-
-Saat ini menggunakan Font Awesome CDN dan inline SVG.

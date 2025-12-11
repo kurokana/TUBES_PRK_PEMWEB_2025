@@ -2,9 +2,9 @@
 // TANGGAL: 9 Desember 2025
 
 // --- 1. SETUP & INCLUDES ---
-require_once '../middleware/auth.php'; 
-require_once '../utils/config.php'; 
-require_once '../utils/admin_utils.php';
+require_once __DIR__ . '/../middleware/auth.php'; 
+require_once __DIR__ . '/../utils/config.php'; 
+require_once __DIR__ . '/../utils/admin_utils.php';
 
 requireAdmin(); 
 
@@ -155,7 +155,7 @@ $chart_colors = ['#f59e0b', '#3b82f6', '#059669', '#10b981', '#ef4444'];
                                     <i class="fas fa-cog w-4 mr-2"></i> Pengaturan Akun
                                 </a>
                                 <div class="border-t border-slate-100 my-1"></div>
-                                <a href="logout.php" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                <a href="/logout.php" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                                     <i class="fas fa-sign-out-alt w-4 mr-2"></i> Logout
                                 </a>
                             </div>

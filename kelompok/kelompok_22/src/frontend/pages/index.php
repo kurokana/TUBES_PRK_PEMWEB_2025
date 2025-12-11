@@ -1,3 +1,27 @@
+<?php
+// Get statistics from database
+require_once __DIR__ . '/../../backend/utils/config.php';
+
+$stats = ['total' => 0, 'diproses' => 0, 'selesai' => 0];
+
+try {
+    $conn = getDBConnection();
+    $stats_result = $conn->query("
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'Diproses' THEN 1 ELSE 0 END) as diproses,
+            SUM(CASE WHEN status = 'Selesai' OR status = 'Tuntas' THEN 1 ELSE 0 END) as selesai
+        FROM reports
+    ");
+    
+    if ($stats_result && $row = $stats_result->fetch_assoc()) {
+        $stats = $row;
+    }
+} catch (Exception $e) {
+    // Keep default values if database fails
+    error_log("Failed to load stats: " . $e->getMessage());
+}
+?>
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
 <head>
@@ -89,10 +113,10 @@
 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center gap-8">
-                     <a href="#beranda" onclick="event.preventDefault(); scrollToElement('home')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Beranda</a>
-                    <a href="#lapor" onclick="event.preventDefault(); scrollToElement('form-lapor')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Lapor Masalah</a>
-                    <a href="#pantau" onclick="event.preventDefault(); scrollToElement('public-feed')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Pantau Laporan</a>
-                    <a href="login.php" class="px-4 py-2 rounded-full text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition border border-slate-200">
+                     <a href="javascript:void(0)" onclick="scrollToElement('home')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Beranda</a>
+                    <a href="javascript:void(0)" onclick="scrollToElement('form-lapor')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Lapor Masalah</a>
+                    <a href="javascript:void(0)" onclick="scrollToElement('public-feed')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Pantau Laporan</a>
+                    <a href="/login.php" class="px-4 py-2 rounded-full text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition border border-slate-200">
                         <i class="fa-solid fa-right-to-bracket mr-2"></i>Login
                     </a>
                 </div>
@@ -136,15 +160,15 @@
                     <!-- Quick Stats -->
                     <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200">
                         <div>
-                            <p class="text-2xl font-bold text-slate-800" id="stat-total">0</p>
+                            <p class="text-2xl font-bold text-slate-800" id="stat-total"><?php echo $stats['total'] ?? 0; ?></p>
                             <p class="text-xs text-slate-500 uppercase tracking-wide">Total Laporan</p>
                         </div>
                         <div>
-                            <p class="text-2xl font-bold text-smart" id="stat-process">0</p>
+                            <p class="text-2xl font-bold text-smart" id="stat-process"><?php echo $stats['diproses'] ?? 0; ?></p>
                             <p class="text-xs text-slate-500 uppercase tracking-wide">Diproses</p>
                         </div>
                         <div>
-                            <p class="text-2xl font-bold text-eco" id="stat-done">0</p>
+                            <p class="text-2xl font-bold text-eco" id="stat-done"><?php echo $stats['selesai'] ?? 0; ?></p>
                             <p class="text-xs text-slate-500 uppercase tracking-wide">Selesai</p>
                         </div>
                     </div>

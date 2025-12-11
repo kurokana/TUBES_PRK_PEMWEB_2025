@@ -1,6 +1,6 @@
 <?php
 
-require_once '../../backend/middleware/auth.php';
+require_once __DIR__ . '/../../backend/middleware/auth.php';
 
 redirectIfLoggedIn();
 
@@ -20,13 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
             // Redirect berdasarkan role
             $role = $result['role'];
             if ($role === 'super_admin') {
-                header('Location: super_../../backend/controllers/admin.php');
+                header('Location: /super_admin.php');
             } elseif ($role === 'admin') {
-                header('Location: ../../backend/controllers/admin.php');
+                header('Location: /admin.php');
             } elseif ($role === 'petugas') {
-                header('Location: ../../backend/controllers/petugas.php');
+                header('Location: /petugas.php');
             } else {
-                header('Location: index.html');
+                header('Location: /pelapor.php');
             }
             exit;
         } else {
@@ -199,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
 
                 <!-- Back to Home -->
                 <div class="mt-6 text-center">
-                    <a href="index.html" class="text-sm text-slate-500 hover:text-slate-700 inline-flex items-center gap-2">
+                    <a href="index.php" class="text-sm text-slate-500 hover:text-slate-700 inline-flex items-center gap-2">
                         <i class="fa-solid fa-arrow-left"></i>
                         Kembali ke Beranda
                     </a>

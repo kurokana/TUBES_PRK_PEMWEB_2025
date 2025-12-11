@@ -5,19 +5,27 @@
  * Kelompok 22
  */
 
+// Path Configuration
+if (!defined('ROOT_PATH')) define('ROOT_PATH', dirname(dirname(dirname(__DIR__))));
+if (!defined('SRC_PATH')) define('SRC_PATH', ROOT_PATH . '/src');
+if (!defined('BACKEND_PATH')) define('BACKEND_PATH', SRC_PATH . '/backend');
+if (!defined('FRONTEND_PATH')) define('FRONTEND_PATH', SRC_PATH . '/frontend');
+
 // Konfigurasi Database
 define('DB_HOST', 'localhost');
 define('DB_USER', 'sipamali_user');
-define('DB_PASS', 'sipamali_password'); // Password untuk user sipamali_user
+define('DB_PASS', 'sipamali_password');
 define('DB_NAME', 'sipamali_db');
 
-// Konfigurasi Upload
-define('UPLOAD_DIR', __DIR__ . '/uploads/');
+// Konfigurasi Upload - Gunakan satu lokasi upload terpusat
+define('UPLOAD_DIR', ROOT_PATH . '/uploads/');
+define('UPLOAD_URL', '/uploads/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);
 
 // Konfigurasi Aplikasi
-define('BASE_URL', 'http://localhost/kelompok_22/'); // Sesuaikan dengan path Anda
+define('BASE_URL', 'http://localhost:8000/');
+define('SITE_NAME', 'SiPaMaLi');
 
 // Error Reporting (Development mode)
 error_reporting(E_ALL);
@@ -34,14 +42,29 @@ function getDBConnection() {
     static $connection = null;
     
     if ($connection === null) {
-        $connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        $connection = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         
         if ($connection->connect_error) {
-            http_response_code(500);
-            die(json_encode([
-                'success' => false,
-                'message' => 'Database connection failed: ' . $connection->connect_error
-            ]));
+            error_log('Database connection failed: ' . $connection->connect_error);
+            
+            // Display user-friendly error
+            die('
+            <!DOCTYPE html>
+            <html>
+            <head><title>Database Error</title></head>
+            <body>
+                <h1>Database Connection Error</h1>
+                <p>Cannot connect to database. Please check:</p>
+                <ul>
+                    <li>MySQL/MariaDB is running</li>
+                    <li>Database credentials in config.php are correct</li>
+                    <li>Database "' . DB_NAME . '" exists</li>
+                    <li>User "' . DB_USER . '" has access</li>
+                </ul>
+                <p><strong>Error:</strong> ' . htmlspecialchars($connection->connect_error) . '</p>
+            </body>
+            </html>
+            ');
         }
         
         $connection->set_charset('utf8mb4');

@@ -5,14 +5,16 @@
  * 1. Pengunjung (belum login)
  * 2. Pelapor (sudah login)
  */
-require_once '../../backend/utils/config.php';
-require_once '../../backend/middleware/auth.php';
+require_once __DIR__ . '/../../backend/utils/config.php';
+require_once __DIR__ . '/../../backend/middleware/auth.php';
 
 $isLoggedIn = isLoggedIn();
 $user = $isLoggedIn ? getCurrentUser() : null;
-$isPelapor = $isLoggedIn && $_SESSION['role'] === 'pelapor';
+// Allow all logged in users (warga, pelapor) to create reports, except admin roles
+$userRole = $_SESSION['role'] ?? 'guest';
+$canReport = $isLoggedIn && !in_array($userRole, ['admin', 'super_admin', 'petugas']);
 
-global $conn;
+$conn = getDBConnection();
 $stats = ['total' => 0, 'diproses' => 0, 'selesai' => 0];
 $stats_result = $conn->query("
     SELECT 
@@ -43,7 +45,7 @@ if ($stats_result) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/../assets/css/styles.css">
+    <link rel="stylesheet" href="/src/frontend/assets/css/styles.css">
     
     <style>
         body { 
@@ -152,7 +154,7 @@ if ($stats_result) {
                     
                     <?php if (!$isLoggedIn): ?>
                         <!-- Menu untuk pengunjung -->
-                        <a href="login.php" class="btn-secondary text-sm">
+                        <a href="/login.php" class="btn-secondary text-sm">
                             <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk
                         </a>
                         <a href="register.php" class="btn-primary text-sm">
@@ -161,7 +163,7 @@ if ($stats_result) {
                     <?php else: ?>
                         <!-- Menu untuk user yang login -->
                         <?php if ($_SESSION['role'] === 'admin'): ?>
-                            <a href="../../backend/controllers/admin.php" class="text-sm font-medium text-slate-600 hover:text-emerald-600 transition duration-200">Admin Area</a>
+                            <a href="/admin.php" class="text-sm font-medium text-slate-600 hover:text-emerald-600 transition duration-200">Admin Area</a>
                         <?php endif; ?>
                         
                         <!-- Profil User -->
@@ -179,7 +181,7 @@ if ($stats_result) {
                                     <p class="text-sm font-semibold text-slate-800"><?php echo htmlspecialchars($user['full_name']); ?></p>
                                     <p class="text-xs text-slate-500"><?php echo ucfirst($user['role']); ?></p>
                                 </div>
-                                <?php if ($isPelapor): ?>
+                                <?php if ($canReport): ?>
                                     <a href="riwayat.php" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-b border-slate-100">
                                         <i class="fa-solid fa-clock-rotate-left w-5 text-slate-400"></i>
                                         <span>Riwayat Laporan</span>
@@ -189,7 +191,7 @@ if ($stats_result) {
                                         <span>Edit Profil</span>
                                     </a>
                                 <?php endif; ?>
-                                <a href="logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50">
+                                <a href="/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50">
                                     <i class="fa-solid fa-right-from-bracket w-5"></i>
                                     <span>Keluar</span>
                                 </a>
@@ -214,7 +216,7 @@ if ($stats_result) {
                 
                 <?php if (!$isLoggedIn): ?>
                     <div class="pt-4 border-t border-slate-200 space-y-2">
-                        <a href="login.php" class="block py-2 text-slate-600 hover:text-emerald-600">Masuk</a>
+                        <a href="/login.php" class="block py-2 text-slate-600 hover:text-emerald-600">Masuk</a>
                         <a href="register.php" class="block py-2 text-emerald-600 hover:text-emerald-700 font-medium">Daftar</a>
                     </div>
                 <?php else: ?>
@@ -223,11 +225,11 @@ if ($stats_result) {
                             <i class="fa-solid fa-user mr-2"></i>
                             <?php echo htmlspecialchars($user['full_name']); ?>
                         </div>
-                        <?php if ($isPelapor): ?>
+                        <?php if ($canReport): ?>
                             <a href="riwayat.php" class="block py-2 text-slate-600 hover:text-emerald-600">Riwayat Laporan</a>
                             <a href="profile.php" class="block py-2 text-slate-600 hover:text-emerald-600">Edit Profil</a>
                         <?php endif; ?>
-                        <a href="logout.php" class="block py-2 text-red-600 hover:text-red-700">Keluar</a>
+                        <a href="/logout.php" class="block py-2 text-red-600 hover:text-red-700">Keluar</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -385,7 +387,7 @@ if ($stats_result) {
                         <div class="mb-8">
                             <h2 class="text-3xl font-bold text-slate-800 mb-2">Buat Laporan Baru</h2>
                             <p class="text-slate-500">
-                                <?php if ($isPelapor): ?>
+                                <?php if ($canReport): ?>
                                     <span class="text-emerald-600 font-medium"><i class="fa-solid fa-circle-check mr-2"></i>Anda login sebagai Pelapor</span> - Laporan akan tersimpan di riwayat Anda
                                 <?php else: ?>
                                     <span class="text-orange-500 font-medium"><i class="fa-solid fa-circle-exclamation mr-2"></i>Silakan <a href="login.php" class="underline hover:text-orange-600">login</a> atau <a href="register.php" class="underline hover:text-orange-600">daftar</a></span> untuk mengirim laporan
@@ -393,9 +395,9 @@ if ($stats_result) {
                             </p>
                         </div>
 
-                        <?php if ($isPelapor): ?>
+                        <?php if ($canReport): ?>
                         <!-- Form untuk Pelapor (bisa submit) -->
-                        <form id="reportForm" onsubmit="submitReport(event)" class="space-y-6">
+                        <form id="reportForm" class="space-y-6">
                             <!-- Kategori -->
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-3">Kategori Masalah</label>
@@ -481,7 +483,7 @@ if ($stats_result) {
                                 <h3 class="text-xl font-bold text-slate-700 mb-2">Login Diperlukan</h3>
                                 <p class="text-slate-600 mb-6">Anda perlu login untuk mengirim laporan. Laporan akan tersimpan di riwayat Anda.</p>
                                 <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                                    <a href="login.php" class="btn-primary px-6 py-3">
+                                    <a href="/login.php" class="btn-primary px-6 py-3">
                                         <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk
                                     </a>
                                     <a href="register.php" class="btn-secondary px-6 py-3">
@@ -527,7 +529,7 @@ if ($stats_result) {
                             </ul>
                         </div>
                         
-                        <?php if ($isPelapor): ?>
+                        <?php if ($canReport): ?>
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                             <div class="flex items-center gap-3 mb-4">
                                 <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
@@ -610,7 +612,7 @@ if ($stats_result) {
                         <li><a href="#beranda" onclick="scrollToSection('beranda')" class="text-slate-400 hover:text-emerald-400 transition text-sm">Beranda</a></li>
                         <li><a href="#lapor" onclick="scrollToSection('lapor')" class="text-slate-400 hover:text-emerald-400 transition text-sm">Lapor Masalah</a></li>
                         <li><a href="#pantau" onclick="scrollToSection('pantau')" class="text-slate-400 hover:text-emerald-400 transition text-sm">Pantau Laporan</a></li>
-                        <?php if ($isPelapor): ?>
+                        <?php if ($canReport): ?>
                         <li><a href="riwayat.php" class="text-slate-400 hover:text-emerald-400 transition text-sm">Riwayat Saya</a></li>
                         <?php endif; ?>
                     </ul>
@@ -751,13 +753,16 @@ if ($stats_result) {
         }
 
         // --- REPORT HANDLING ---
-        <?php if ($isPelapor): ?>
+        <?php if ($canReport): ?>
         async function submitReport(e) {
+            console.log('submitReport called');
             e.preventDefault();
             
             const category = document.querySelector('input[name="category"]:checked').value;
             const location = document.getElementById('locationInput').value.trim();
             const description = document.getElementById('descInput').value.trim();
+            
+            console.log('Form data:', { category, location, description });
             
             // Validation
             if (!location) {
@@ -788,15 +793,26 @@ if ($stats_result) {
                 
                 if (currentImageFile) {
                     formData.append('image', currentImageFile);
+                    console.log('Image attached:', currentImageFile.name);
                 }
                 
+                // Debug: log FormData contents
+                console.log('FormData contents:');
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+                }
+                
+                console.log('Sending request to /api.php');
+                
                 // Send request
-                const response = await fetch('api.php', {
+                const response = await fetch('/api.php', {
                     method: 'POST',
                     body: formData
                 });
                 
+                console.log('Response status:', response.status);
                 const result = await response.json();
+                console.log('Response data:', result);
                 
                 if (result.success) {
                     // Reset form
@@ -826,7 +842,7 @@ if ($stats_result) {
             const container = document.getElementById('reportList');
             
             try {
-                const response = await fetch(`api.php?action=getReports&filter=${filter}`);
+                const response = await fetch(`/api.php?action=getReports&filter=${filter}`);
                 const result = await response.json();
                 
                 if (result.success && result.data.length > 0) {
@@ -915,7 +931,7 @@ if ($stats_result) {
                         
                         <div class="flex items-center justify-between text-xs text-slate-500">
                             <span>${date} • ID: ${report.report_code}</span>
-                            <?php if ($isPelapor && isset($user) && $user['id'] == 'USER_ID_PLACEHOLDER'): ?>
+                            <?php if ($canReport && isset($user) && $user['id'] == 'USER_ID_PLACEHOLDER'): ?>
                             <button class="text-emerald-600 hover:text-emerald-700 font-medium" onclick="viewReportDetail('${report.id}')">
                                 Detail
                             </button>
@@ -939,8 +955,21 @@ if ($stats_result) {
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            
             // Load reports on page load
+            <?php if ($canReport): ?>
             loadReports();
+            
+            // Attach form submit handler
+            const reportForm = document.getElementById('reportForm');
+            if (reportForm) {
+                console.log('Report form found, attaching event listener');
+                reportForm.addEventListener('submit', submitReport);
+            } else {
+                console.warn('Report form not found');
+            }
+            <?php endif; ?>
             
             // Add scroll event for navbar
             window.addEventListener('scroll', function() {
