@@ -20,6 +20,18 @@
  * * CATATAN: Memerlukan fungsi helper: getDBConnection(), jsonResponse(), sanitizeInput(), generateReportId(), validateUploadedFile(), UPLOAD_DIR
  */
 
+// CRITICAL: Disable HTML error output for API to prevent JSON corruption on Windows
+// Error akan ditulis ke log file, bukan ke output HTML
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
+
+// Clear any output buffer that might contain errors
+if (ob_get_level()) {
+    ob_end_clean();
+}
+ob_start();
+
 // DEBUG: File execution check
 file_put_contents('/tmp/api_debug.log', "\n\n=== API.PHP LOADED ===\n", FILE_APPEND);
 file_put_contents('/tmp/api_debug.log', "Time: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);

@@ -132,7 +132,7 @@ if ($stats_result) {
 <body class="bg-slate-50 text-slate-800 antialiased">
 
     <!-- Navbar -->
-    <nav class="fixed w-full z-50 glass-nav shadow-sm">
+    <nav id="navbar" class="fixed w-full z-50 glass-nav shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->

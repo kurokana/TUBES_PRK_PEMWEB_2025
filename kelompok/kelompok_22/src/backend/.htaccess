@@ -1,0 +1,13 @@
+# Disable display_errors untuk semua file backend PHP
+# Ini mencegah error HTML merusak JSON response di Windows
+php_flag display_errors Off
+php_flag display_startup_errors Off
+php_flag log_errors On
+
+# Prevent directory listing
+Options -Indexes
+
+# Allow CORS for API (jika diperlukan)
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization"

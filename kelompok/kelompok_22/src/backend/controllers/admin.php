@@ -1037,7 +1037,19 @@ $chart_colors = ['#f59e0b', '#3b82f6', '#059669', '#10b981', '#ef4444'];
             if (!response.ok) {
                  throw new Error(`Gagal mengambil data petugas. Status: ${response.status} ${response.statusText}`);
             }
-            const result = await response.json();
+            
+            // Get response text first to check if it's valid JSON
+            const responseText = await response.text();
+            
+            // Try to parse JSON, with error handling for corrupted responses
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Invalid JSON response from server:', responseText.substring(0, 200));
+                throw new Error('Server returned invalid JSON. Check PHP error logs.');
+            }
+            
             if (result.success) {
                 petugasList = result.data;
                 populatePetugasDropdown();
