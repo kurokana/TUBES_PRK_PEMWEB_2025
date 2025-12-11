@@ -7,8 +7,8 @@
 
 // Konfigurasi Database
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', ''); // Sesuaikan dengan password MySQL Anda
+define('DB_USER', 'sipamali_user');
+define('DB_PASS', 'sipamali_password'); // Password untuk user sipamali_user
 define('DB_NAME', 'sipamali_db');
 
 // Konfigurasi Upload

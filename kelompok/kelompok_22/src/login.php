@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     if (empty($username) || empty($password)) {
         $error = 'Username dan password harus diisi';
     } else {
-        $result = loginAdmin($username, $password);
+        $result = loginUser($username, $password);
         
         if ($result['success']) {
             header('Location: admin.php');
