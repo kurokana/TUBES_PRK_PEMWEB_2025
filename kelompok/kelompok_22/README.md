@@ -81,12 +81,20 @@ mysql -u sipamali_user -p sipamali_db < src/database/sample_users_and_data.sql
 ```
 
 ### Langkah 3: Konfigurasi Database (Opsional)
-Jika menggunakan kredensial database berbeda, edit file `src/backend/utils/config.php`:
+Jika menggunakan Linux dan kredensial database berbeda, edit file `src/backend/utils/config.php`:
 ```php
 define('DB_HOST', 'localhost');
-define('DB_USER', 'sipamali_user');
-define('DB_PASS', 'sipamali_password');
-define('DB_NAME', 'sipamali_db');
+define('DB_USER', 'dev');
+define('DB_PASS', 'DevPass123!');
+define('DB_NAME', 'pamali2');
+```
+
+Jika menggunakan Windows
+```php 
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'pamali2');
 ```
 
 ### Langkah 4: Jalankan Aplikasi
