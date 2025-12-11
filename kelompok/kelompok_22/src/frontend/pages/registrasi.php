@@ -57,11 +57,22 @@
             </button>
         </form>
 
-        <p class="text-center text-sm text-slate-500 mt-6">
-            Sudah punya akun? <a href="/login.php" class="text-emerald-600 font-bold hover:underline">Masuk disini</a>
-        </p>
+        <!-- Login Link -->
+        <div class="mt-6 text-center">
+            <p class="text-sm text-slate-600">
+                Sudah punya akun? 
+                <a href="/login.php" class="text-emerald-600 font-bold hover:underline">
+                    Masuk disini
+                </a>
+            </p>
+        </div>
+
+        <!-- Back to Home -->
         <div class="text-center mt-4">
-            <a href="index.php" class="text-xs text-slate-400 hover:text-slate-600">Kembali ke Beranda</a>
+            <a href="/" class="text-xs text-slate-400 hover:text-slate-600 inline-flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i>
+                Kembali ke Beranda
+            </a>
         </div>
     </div>
 </div>
