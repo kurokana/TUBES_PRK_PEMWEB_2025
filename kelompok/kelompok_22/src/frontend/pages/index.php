@@ -89,11 +89,11 @@
 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center gap-8">
-                     <a href="#beranda" onclick="scrollToElement('home')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Beranda</a>
-                    <a href="#lapor" onclick="scrollToElement('form-lapor')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Lapor Masalah</a>
-                    <a href="#pantau" onclick="scrollToElement('public-feed')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Pantau Laporan</a>
+                     <a href="#beranda" onclick="event.preventDefault(); scrollToElement('home')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Beranda</a>
+                    <a href="#lapor" onclick="event.preventDefault(); scrollToElement('form-lapor')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Lapor Masalah</a>
+                    <a href="#pantau" onclick="event.preventDefault(); scrollToElement('public-feed')" class="text-sm font-medium text-slate-600 hover:text-eco transition">Pantau Laporan</a>
                     <a href="login.php" class="px-4 py-2 rounded-full text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition border border-slate-200">
-                        <i class="fa-solid fa-user-shield mr-2"></i>Admin Area
+                        <i class="fa-solid fa-right-to-bracket mr-2"></i>Login
                     </a>
                 </div>
 
