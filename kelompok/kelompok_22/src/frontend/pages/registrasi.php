@@ -1,4 +1,4 @@
-<?php require_once 'includes/auth.php'; redirectIfLoggedIn(); ?>
+<?php require_once '../../backend/middleware/auth.php'; redirectIfLoggedIn(); ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -70,11 +70,11 @@
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    formData.append('action', 'register_warga');
+    formData.append('action', 'register');
 
     // Validasi NIK client-side
     const nik = formData.get('nik');
-    if (nik.length !== 16 || isNaN(nik)) {
+    if (nik && (nik.length !== 16 || isNaN(nik))) {
         alert('NIK harus 16 digit angka');
         return;
     }
@@ -85,7 +85,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     btn.disabled = true;
 
     try {
-        const res = await fetch('includes/auth.php', { method: 'POST', body: formData });
+        const res = await fetch('../../backend/middleware/auth.php', { method: 'POST', body: formData });
         const data = await res.json();
         
         if (data.success) {

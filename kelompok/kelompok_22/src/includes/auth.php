@@ -42,6 +42,9 @@ function loginUser($username, $password) {
     $stmt->bind_param('i', $user['id']);
     $stmt->execute();
     
+    // Audit log
+    logAudit($user['id'], 'login', NULL, NULL, 'User logged in: ' . $username);
+    
     return [
         'success' => true,
         'message' => 'Login berhasil',
@@ -53,6 +56,57 @@ function loginUser($username, $password) {
             'role' => $user['role']
         ]
     ];
+}
+
+function registerUser($data) {
+    $conn = getDBConnection();
+    
+    $username = sanitizeInput($data['username']);
+    $email = sanitizeInput($data['email']);
+    $full_name = sanitizeInput($data['full_name']);
+    $phone = sanitizeInput($data['phone'] ?? '');
+    $password = $data['password'];
+    
+    // Validasi
+    if (empty($username) || empty($email) || empty($full_name) || empty($password)) {
+        return ['success' => false, 'message' => 'Semua field wajib diisi'];
+    }
+    
+    if (strlen($password) < 6) {
+        return ['success' => false, 'message' => 'Password minimal 6 karakter'];
+    }
+    
+    // Cek username/email sudah ada
+    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+    $stmt->bind_param('ss', $username, $email);
+    $stmt->execute();
+    if ($stmt->get_result()->num_rows > 0) {
+        return ['success' => false, 'message' => 'Username atau email sudah terdaftar'];
+    }
+    
+    // Hash password
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    
+    // Insert user dengan default role 'warga'
+    $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash, full_name, phone, role, is_active, email_verified) VALUES (?, ?, ?, ?, ?, 'warga', 1, 0)");
+    $stmt->bind_param('sssss', $username, $email, $password_hash, $full_name, $phone);
+    
+    if ($stmt->execute()) {
+        return ['success' => true, 'message' => 'Registrasi berhasil! Silakan login.'];
+    }
+    
+    return ['success' => false, 'message' => 'Registrasi gagal: ' . $conn->error];
+}
+
+function logAudit($user_id, $action_type, $target_type, $target_id, $description, $old_value = null, $new_value = null) {
+    $conn = getDBConnection();
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+    
+    $stmt = $conn->prepare("INSERT INTO audit_logs (user_id, action_type, target_type, target_id, description, old_value, new_value, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param('issssssss', $user_id, $action_type, $target_type, $target_id, $description, $old_value, $new_value, $ip_address, $user_agent);
+    $stmt->execute();
+    $stmt->close();
 }
 
 function logoutUser() {
@@ -98,13 +152,14 @@ function requireRole($requiredRoles) {
     }
     
     if (!in_array($currentUserRole, $requiredRoles)) {
-        
-        if ($currentUserRole === 'admin') {
+        if ($currentUserRole === 'super_admin') {
+            header("Location: super_admin.php"); 
+        } elseif ($currentUserRole === 'admin') {
             header("Location: admin.php"); 
         } elseif ($currentUserRole === 'petugas') {
             header("Location: petugas.php"); 
         } else {
-            header("Location: index.php"); 
+            header("Location: index.html"); 
         }
         exit;
     }
@@ -118,19 +173,29 @@ function requirePetugas() {
     requireRole('petugas');
 }
 
+function requireSuperAdmin() {
+    requireRole('super_admin');
+}
+
 function requireAdminOrPetugas() {
     requireRole(['admin', 'petugas']);
+}
+
+function requireAdminOrSuperAdmin() {
+    requireRole(['admin', 'super_admin']);
 }
 
 function redirectIfLoggedIn() {
     if (isUserLoggedIn()) {
         $role = $_SESSION['role'] ?? 'warga';
-        if ($role === 'admin') {
-             header('Location: admin.php');
+        if ($role === 'super_admin') {
+            header('Location: super_admin.php');
+        } elseif ($role === 'admin') {
+            header('Location: admin.php');
         } elseif ($role === 'petugas') {
-             header('Location: petugas.php');
+            header('Location: petugas.php');
         } else {
-             header('Location: index.php'); 
+            header('Location: index.html'); 
         }
         exit;
     }
@@ -175,6 +240,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'logged_in' => isUserLoggedIn(), 
                 'user' => getUserInfo() 
             ]);
+            exit;
+        
+        case 'register':
+            $result = registerUser($_POST);
+            echo json_encode($result);
             exit;
         
         default:

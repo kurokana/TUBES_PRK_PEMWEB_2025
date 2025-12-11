@@ -5,8 +5,8 @@
  * 1. Pengunjung (belum login)
  * 2. Pelapor (sudah login)
  */
-require_once 'includes/config.php';
-require_once 'includes/auth.php';
+require_once '../../backend/utils/config.php';
+require_once '../../backend/middleware/auth.php';
 
 $isLoggedIn = isLoggedIn();
 $user = $isLoggedIn ? getCurrentUser() : null;
@@ -43,7 +43,7 @@ if ($stats_result) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/../assets/css/styles.css">
     
     <style>
         body { 
@@ -161,7 +161,7 @@ if ($stats_result) {
                     <?php else: ?>
                         <!-- Menu untuk user yang login -->
                         <?php if ($_SESSION['role'] === 'admin'): ?>
-                            <a href="admin.php" class="text-sm font-medium text-slate-600 hover:text-emerald-600 transition duration-200">Admin Area</a>
+                            <a href="../../backend/controllers/admin.php" class="text-sm font-medium text-slate-600 hover:text-emerald-600 transition duration-200">Admin Area</a>
                         <?php endif; ?>
                         
                         <!-- Profil User -->

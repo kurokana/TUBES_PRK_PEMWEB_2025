@@ -1,0 +1,50 @@
+# SiPaMaLi - Apache Configuration
+# Kelompok 22 - Praktikum Pemrograman Web 2025
+
+# Enable RewriteEngine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /kelompok_22/src/
+    
+    # Redirect old paths to new structure
+    RewriteRule ^login\.php$ frontend/pages/login.php [L]
+    RewriteRule ^registrasi\.php$ frontend/pages/registrasi.php [L]
+    RewriteRule ^pelapor\.php$ frontend/pages/pelapor.php [L]
+    RewriteRule ^riwayat\.php$ frontend/pages/riwayat.php [L]
+    RewriteRule ^admin\.php$ backend/controllers/admin.php [L]
+    RewriteRule ^petugas\.php$ backend/controllers/petugas.php [L]
+    RewriteRule ^super_admin\.php$ backend/controllers/super_admin.php [L]
+    RewriteRule ^api\.php$ backend/controllers/api.php [L]
+    RewriteRule ^logout\.php$ backend/controllers/logout.php [L]
+    
+    # Block direct access to sensitive files
+    RewriteRule ^backend/utils/config\.php$ - [F,L]
+    RewriteRule ^backend/middleware/auth\.php$ - [F,L]
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "(config\.php|auth\.php|admin_utils\.php|\.env)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow uploads folder
+<Directory "frontend/uploads">
+    Options -Indexes
+    AllowOverride None
+    Require all granted
+</Directory>
+
+# Set default charset
+AddDefaultCharset UTF-8
+
+# PHP settings
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
