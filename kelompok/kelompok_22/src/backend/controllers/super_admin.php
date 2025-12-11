@@ -215,9 +215,9 @@ $reports = $conn->query($reports_query);
                             <tr>
                                 <td class="px-4 py-3 text-sm font-mono"><?= htmlspecialchars($r['report_id']) ?></td>
                                 <td class="px-4 py-3 text-sm"><?= htmlspecialchars($r['category']) ?></td>
-                                <td class="px-4 py-3 text-sm"><?= htmlspecialchars($r['reporter_name'] ?? 'Anonymous') ?></td>
-                                <td class="px-4 py-3 text-sm"><?= htmlspecialchars($r['admin_name'] ?? '-') ?></td>
-                                <td class="px-4 py-3 text-sm"><?= htmlspecialchars($r['petugas_name'] ?? '-') ?></td>
+                                <td class="px-4 py-3 text-sm"><?= h($r['reporter_name'], 'Anonymous') ?></td>
+                                <td class="px-4 py-3 text-sm"><?= h($r['admin_name'], '-') ?></td>
+                                <td class="px-4 py-3 text-sm"><?= h($r['petugas_name'], '-') ?></td>
                                 <td class="px-4 py-3 text-sm">
                                     <span class="px-2 py-1 rounded text-xs font-semibold
                                         <?= $r['status'] === 'Menunggu' ? 'bg-yellow-100 text-yellow-800' : '' ?>
@@ -257,16 +257,16 @@ $reports = $conn->query($reports_query);
                                     <?= date('d/m/Y H:i:s', strtotime($log['created_at'])) ?>
                                 </td>
                                 <td class="px-4 py-3 text-sm">
-                                    <?= htmlspecialchars($log['full_name'] ?? 'System') ?>
-                                    <span class="text-xs text-slate-500">(<?= htmlspecialchars($log['username'] ?? '-') ?>)</span>
+                                    <?= h($log['full_name'], 'System') ?>
+                                    <span class="text-xs text-slate-500">(<?= h($log['username'], '-') ?>)</span>
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     <span class="px-2 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-800">
-                                        <?= htmlspecialchars($log['action_type']) ?>
+                                        <?= h($log['action_type']) ?>
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm"><?= htmlspecialchars($log['description']) ?></td>
-                                <td class="px-4 py-3 text-sm font-mono text-xs"><?= htmlspecialchars($log['ip_address']) ?></td>
+                                <td class="px-4 py-3 text-sm"><?= h($log['description'], '-') ?></td>
+                                <td class="px-4 py-3 text-sm font-mono text-xs"><?= h($log['ip_address']) ?></td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>

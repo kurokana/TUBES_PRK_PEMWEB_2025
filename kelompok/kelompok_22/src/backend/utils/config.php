@@ -86,6 +86,16 @@ function sanitizeInput($data) {
 }
 
 /**
+ * Helper function untuk htmlspecialchars yang aman dari null (PHP 8.1+)
+ * @param mixed $string - String yang akan di-escape, bisa null
+ * @param string $default - Default value jika $string null
+ * @return string
+ */
+function h($string, $default = '') {
+    return htmlspecialchars($string ?? $default, ENT_QUOTES, 'UTF-8');
+}
+
+/**
  * Fungsi untuk response JSON
  * @param bool $success
  * @param mixed $data

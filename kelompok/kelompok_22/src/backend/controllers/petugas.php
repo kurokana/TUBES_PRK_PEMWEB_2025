@@ -78,8 +78,8 @@ if ($userRole !== 'petugas' && $userRole !== 'admin') { header('Location: /'); e
                     <!-- Profil User -->
                     <div class="flex items-center gap-3 border-l border-slate-200 pl-6">
                         <div class="text-right hidden md:block">
-                            <p class="text-sm font-bold text-slate-800"><?php echo htmlspecialchars($userInfo['full_name']); ?></p>
-                            <p class="text-[10px] text-slate-500 uppercase tracking-wider"><?php echo htmlspecialchars($userInfo['agency'] ?? 'Petugas Lapangan'); ?></p>
+                            <p class="text-sm font-bold text-slate-800"><?php echo h($userInfo['full_name']); ?></p>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-wider"><?php echo h($userInfo['agency'], 'Petugas Lapangan'); ?></p>
                         </div>
                         <div class="w-10 h-10 bg-slate-200 rounded-full overflow-hidden border-2 border-white shadow-sm">
                             <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($userInfo['full_name']); ?>&background=059669&color=fff" alt="Profile">
