@@ -1,7 +1,7 @@
 # SiPaMaLi - Sistem Pelaporan & Pemantauan Masalah Lingkungan
 
 ## Kelompok 22
-1. Muhammad Faisal (Kuokana)
+1. Muhammad Faisal (Kurokana)
 2. Delon (deeloon22)
 3. Najwa Aprisda (najwaaprisda)
 4. Gerald (geraldilyas)
