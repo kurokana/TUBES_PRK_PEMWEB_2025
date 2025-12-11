@@ -13,9 +13,9 @@ if (!defined('FRONTEND_PATH')) define('FRONTEND_PATH', SRC_PATH . '/frontend');
 
 // Konfigurasi Database
 define('DB_HOST', 'localhost');
-define('DB_USER', 'sipamali_user');
-define('DB_PASS', 'sipamali_password');
-define('DB_NAME', 'sipamali_db');
+define('DB_USER', 'dev');
+define('DB_PASS', 'DevPass123!');
+define('DB_NAME', 'pamali2');
 
 // Konfigurasi Upload - Gunakan satu lokasi upload terpusat
 define('UPLOAD_DIR', SRC_PATH . '/uploads/');

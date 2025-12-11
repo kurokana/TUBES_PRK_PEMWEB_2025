@@ -1,9 +1,14 @@
 -- ============================================
--- SiPaMaLi - Sample Users & Dummy Data
--- Data untuk testing dan demo website
+-- SiPaMaLi v3.0 - Sample Users & Seed Data
+-- Sistem Pelaporan & Pemantauan Masalah Lingkungan
+-- Kelompok 22 - Praktikum Pemrograman Web 2025
+-- Updated: December 2025
+-- 
+-- PENTING: Jalankan file ini SETELAH sipamali_complete_schema.sql
+-- File ini hanya berisi data seed untuk testing dan demo
 -- ============================================
 
-USE sipamali_db;
+USE pamali2;
 
 -- ============================================
 -- HAPUS DATA LAMA (untuk fresh install)
