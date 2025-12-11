@@ -765,7 +765,7 @@ $chart_colors = ['#f59e0b', '#3b82f6', '#059669', '#10b981', '#ef4444'];
                 <div class="mb-6 border-b pb-4"><p class="text-xs text-slate-500 font-medium uppercase mb-2">Foto Bukti</p><img id="modal-image" src="" alt="Bukti Laporan" class="w-full h-auto max-h-60 object-cover rounded-lg border border-slate-200"><p id="no-image" class="text-center text-slate-400 py-4 hidden"><i class="fa-solid fa-image-slash mr-1"></i> Tidak ada foto</p></div>
                 
                 <div id="completionSection" style="display:none;" class="mb-6 p-4 border-l-4 border-emerald-500 bg-emerald-50 rounded-lg">
-                    <p class="text-xs text-emerald-600 font-bold uppercase mb-3"><i class="fa-solid fa-check-circle mr-1"></i>Foto Penyelesaian & Waktu</p>
+                    <p class="text-xs text-emerald-600 font-bold uppercase mb-3"><i class="fa-solid fa-check-circle mr-1"></i>Laporan Penyelesaian Petugas</p>
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <p class="text-xs text-slate-600 font-semibold mb-2">Waktu Penyelesaian</p>
@@ -775,6 +775,10 @@ $chart_colors = ['#f59e0b', '#3b82f6', '#059669', '#10b981', '#ef4444'];
                             <p class="text-xs text-slate-600 font-semibold mb-2">Petugas Penyelesai</p>
                             <p class="text-slate-800 font-medium" id="completion-officer">-</p>
                         </div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-xs text-slate-600 font-semibold mb-2">Catatan Penyelesaian</p>
+                        <p class="text-slate-800 p-3 bg-white rounded-lg border border-emerald-200" id="completion-notes">-</p>
                     </div>
                     <p class="text-xs text-slate-600 font-semibold mb-2">Foto Penyelesaian</p>
                     <img id="completion-image" src="" alt="Foto Penyelesaian" class="w-full h-auto max-h-60 object-cover rounded-lg border border-emerald-200">
@@ -961,28 +965,34 @@ $chart_colors = ['#f59e0b', '#3b82f6', '#059669', '#10b981', '#ef4444'];
             noImgEl.classList.remove('hidden');
         }
         
-        // Tampilkan foto penyelesaian dan waktu jika status Tuntas
+        // Tampilkan foto penyelesaian dan waktu jika status Tuntas atau Selesai
         const completionSection = document.getElementById('completionSection');
-        if (report.status === 'Tuntas' && completionSection) {
+        if ((report.status === 'Tuntas' || report.status === 'Selesai') && completionSection) {
             completionSection.style.display = 'block';
             
             // Tampilkan waktu penyelesaian
-            const completionTime = report.completed_at 
-                ? new Date(report.completed_at).toLocaleString('id-ID', {
+            const completionTime = report.resolved_at 
+                ? new Date(report.resolved_at).toLocaleString('id-ID', {
                     year: 'numeric', month: 'long', day: 'numeric',
                     hour: '2-digit', minute: '2-digit'
                 })
-                : '-';
+                : (report.updated_at ? new Date(report.updated_at).toLocaleString('id-ID', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                }) : '-');
             document.getElementById('completion-time').innerText = completionTime;
             
             // Tampilkan petugas penyelesai
             document.getElementById('completion-officer').innerText = report.assigned_to_name || '-';
             
+            // Tampilkan catatan penyelesaian
+            document.getElementById('completion-notes').innerText = report.completion_notes || 'Tidak ada catatan';
+            
             // Tampilkan foto penyelesaian
             const completionImgEl = document.getElementById('completion-image');
             const noCompletionImgEl = document.getElementById('no-completion-image');
-            if (report.completion_image_path) {
-                completionImgEl.src = report.completion_image_path;
+            if (report.completion_image) {
+                completionImgEl.src = report.completion_image;
                 completionImgEl.classList.remove('hidden');
                 noCompletionImgEl.classList.add('hidden');
             } else {

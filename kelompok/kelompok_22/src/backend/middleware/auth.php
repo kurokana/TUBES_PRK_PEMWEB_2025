@@ -67,6 +67,7 @@ function registerUser($data) {
     $email = sanitizeInput($data['email']);
     $full_name = sanitizeInput($data['full_name']);
     $phone = sanitizeInput($data['phone'] ?? '');
+    $nik = sanitizeInput($data['nik'] ?? '');
     $password = $data['password'];
     
     // Validasi
@@ -78,6 +79,11 @@ function registerUser($data) {
         return ['success' => false, 'message' => 'Password minimal 6 karakter'];
     }
     
+    // Validasi NIK (16 digit)
+    if (!empty($nik) && (strlen($nik) !== 16 || !ctype_digit($nik))) {
+        return ['success' => false, 'message' => 'NIK harus 16 digit angka'];
+    }
+    
     // Cek username/email sudah ada
     $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
     $stmt->bind_param('ss', $username, $email);
@@ -86,12 +92,22 @@ function registerUser($data) {
         return ['success' => false, 'message' => 'Username atau email sudah terdaftar'];
     }
     
+    // Cek NIK jika diisi
+    if (!empty($nik)) {
+        $stmt = $conn->prepare("SELECT id FROM users WHERE nik = ?");
+        $stmt->bind_param('s', $nik);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0) {
+            return ['success' => false, 'message' => 'NIK sudah terdaftar'];
+        }
+    }
+    
     // Hash password
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
     
     // Insert user dengan default role 'warga'
-    $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash, full_name, phone, role, is_active, email_verified) VALUES (?, ?, ?, ?, ?, 'warga', 1, 0)");
-    $stmt->bind_param('sssss', $username, $email, $password_hash, $full_name, $phone);
+    $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash, full_name, phone, nik, role, is_active, email_verified) VALUES (?, ?, ?, ?, ?, ?, 'warga', 1, 0)");
+    $stmt->bind_param('ssssss', $username, $email, $password_hash, $full_name, $phone, $nik);
     
     if ($stmt->execute()) {
         return ['success' => true, 'message' => 'Registrasi berhasil! Silakan login.'];

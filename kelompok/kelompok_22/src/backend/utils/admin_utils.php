@@ -74,8 +74,7 @@ function getValidationReports() {
     $sql = "SELECT 
                 r.*, 
                 u.full_name AS reported_by, 
-                p.full_name AS assigned_to_name,
-                r.petugas_notes
+                p.full_name AS assigned_to_name
             FROM 
                 reports r
             LEFT JOIN 
@@ -191,7 +190,7 @@ function changeUserRole($user_id, $new_role, $admin_id) {
     
     if ($stmt->execute()) {
         // Log audit
-        require_once 'auth.php';
+        require_once __DIR__ . '/../middleware/auth.php';
         logAudit($admin_id, 'role_change', 'users', $user_id, 
                 "Changed role of user '$username' from '$old_role' to '$new_role'", 
                 $old_role, $new_role);
@@ -216,7 +215,7 @@ function toggleUserStatus($user_id, $is_active, $admin_id) {
     $stmt->bind_param('ii', $is_active, $user_id);
     
     if ($stmt->execute()) {
-        require_once 'auth.php';
+        require_once __DIR__ . '/../middleware/auth.php';
         $action = $is_active ? 'activated' : 'deactivated';
         logAudit($admin_id, 'user_management', 'users', $user_id, 
                 "User '$username' $action", !$is_active, $is_active);
@@ -228,9 +227,11 @@ function toggleUserStatus($user_id, $is_active, $admin_id) {
 
 // Handle POST requests for super admin actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    session_start();
-    require_once 'config.php';
-    require_once 'auth.php';
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    require_once __DIR__ . '/config.php';
+    require_once __DIR__ . '/../middleware/auth.php';
     
     header('Content-Type: application/json');
     

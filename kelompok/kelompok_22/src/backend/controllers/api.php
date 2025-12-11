@@ -9,9 +9,12 @@
  * - GET    /api.php?action=getStats         - Get statistics
  * - GET    /api.php?action=getPetugas       - GET LIST PETUGAS
  * - POST   /api.php?action=createReport     - Create new report
+ * - POST   /api.php?action=change_user_role - Change user role (super admin only)
+ * - POST   /api.php?action=toggle_user_status - Toggle user active status (super admin only)
  * - PUT    /api.php?action=updateStatus     - Update report status
  * - PUT    /api.php?action=assignReport     - ASSIGN PETUGAS (PRIMARY KEY ID)
  * - PUT    /api.php?action=validateReport   - VALIDASI (DITERIMA -> TUNTAS)
+ * - PUT    /api.php?action=rejectReport     - TOLAK LAPORAN WARGA (dari halaman Laporan Warga)
  * - PUT    /api.php?action=rejectValidation - VALIDASI (DITOLAK -> DIPROSES)
  * - DELETE /api.php?action=deleteReport&id=xxx - Delete report
  * * CATATAN: Memerlukan fungsi helper: getDBConnection(), jsonResponse(), sanitizeInput(), generateReportId(), validateUploadedFile(), UPLOAD_DIR
@@ -312,6 +315,48 @@ function handlePost($action) {
                 jsonResponse(false, null, 'Gagal menyimpan laporan: ' . $conn->error, 500);
             }
             break;
+        
+        case 'change_user_role':
+            // Only super admin can change roles
+            if (!isLoggedIn()) {
+                jsonResponse(false, null, 'Unauthorized - Login required', 401);
+                return;
+            }
+            
+            $currentUser = getCurrentUser();
+            if ($currentUser['role'] !== 'super_admin') {
+                jsonResponse(false, null, 'Unauthorized - Super admin only', 403);
+                return;
+            }
+            
+            require_once __DIR__ . '/../utils/admin_utils.php';
+            $user_id = (int)$_POST['user_id'];
+            $new_role = $_POST['new_role'];
+            $result = changeUserRole($user_id, $new_role, $currentUser['id']);
+            
+            jsonResponse($result['success'], null, $result['message']);
+            break;
+            
+        case 'toggle_user_status':
+            // Only super admin can toggle user status
+            if (!isLoggedIn()) {
+                jsonResponse(false, null, 'Unauthorized - Login required', 401);
+                return;
+            }
+            
+            $currentUser = getCurrentUser();
+            if ($currentUser['role'] !== 'super_admin') {
+                jsonResponse(false, null, 'Unauthorized - Super admin only', 403);
+                return;
+            }
+            
+            require_once __DIR__ . '/../utils/admin_utils.php';
+            $user_id = (int)$_POST['user_id'];
+            $is_active = (int)$_POST['is_active'];
+            $result = toggleUserStatus($user_id, $is_active, $currentUser['id']);
+            
+            jsonResponse($result['success'], null, $result['message']);
+            break;
             
         default:
             jsonResponse(false, null, 'Invalid action', 400);
@@ -428,6 +473,42 @@ function handlePut($action) {
             $stmt->close();
             break;
 
+        case 'rejectReport':
+            // Menolak laporan warga langsung (dari halaman Laporan Warga)
+            $putData = getPutData();
+            $reportPkeyId = (int)($putData['id'] ?? 0);
+            $adminNotes = sanitizeInput($putData['admin_notes'] ?? '');
+
+            if ($reportPkeyId <= 0) {
+                jsonResponse(false, null, 'Invalid Report ID.', 400);
+                return;
+            }
+
+            if (empty($adminNotes)) {
+                jsonResponse(false, null, "Alasan penolakan wajib diisi.", 400);
+                return;
+            }
+            
+            $rejectStatus = 'Ditolak'; 
+            
+            // Tolak laporan dengan status apapun kecuali Tuntas
+            $stmt = $conn->prepare("UPDATE reports SET status = ?, admin_notes = ?, updated_at = NOW() WHERE id = ? AND status != 'Tuntas'");
+            
+            if ($stmt === false) {
+                jsonResponse(false, null, 'SQL Prepare Error (Reject Report): ' . $conn->error, 500);
+                return;
+            }
+
+            $stmt->bind_param('ssi', $rejectStatus, $adminNotes, $reportPkeyId);
+            
+            if ($stmt->execute() && $stmt->affected_rows > 0) {
+                jsonResponse(true, null, "Laporan berhasil ditolak.");
+            } else {
+                jsonResponse(false, null, "Gagal menolak laporan. Pastikan laporan belum tuntas.", 500);
+            }
+            $stmt->close();
+            break;
+
         case 'rejectValidation': 
             $putData = getPutData();
             $reportPkeyId = (int)($putData['id'] ?? 0);
@@ -463,6 +544,66 @@ function handlePut($action) {
                 // Ini terjadi jika laporan tidak ditemukan atau statusnya bukan 'Selesai' atau 'Diproses'
                 jsonResponse(false, null, "Gagal menolak validasi. Pastikan status laporan masih 'Selesai' atau 'Diproses'.", 500);
             }
+            $stmt->close();
+            break;
+            
+        case 'request_reset':
+            // Request password reset - verify username and email match
+            $username = sanitizeInput($_POST['username'] ?? '');
+            $email = sanitizeInput($_POST['email'] ?? '');
+            
+            if (empty($username) || empty($email)) {
+                jsonResponse(false, null, 'Username dan email harus diisi', 400);
+                return;
+            }
+            
+            $conn = getDBConnection();
+            
+            // Check if username and email match
+            $stmt = $conn->prepare("SELECT user_id FROM users WHERE username = ? AND email = ? AND is_active = 1");
+            $stmt->bind_param('ss', $username, $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                // User found - in production, send email with reset token
+                // For now, just return success (allow direct reset)
+                jsonResponse(true, null, 'Verifikasi berhasil! Silakan masukkan password baru Anda.');
+            } else {
+                jsonResponse(false, null, 'Username dan email tidak cocok atau akun tidak aktif', 404);
+            }
+            
+            $stmt->close();
+            break;
+            
+        case 'reset_password':
+            // Reset password after verification
+            $username = sanitizeInput($_POST['username'] ?? '');
+            $newPassword = $_POST['new_password'] ?? '';
+            
+            if (empty($username) || empty($newPassword)) {
+                jsonResponse(false, null, 'Username dan password harus diisi', 400);
+                return;
+            }
+            
+            if (strlen($newPassword) < 6) {
+                jsonResponse(false, null, 'Password minimal 6 karakter', 400);
+                return;
+            }
+            
+            $conn = getDBConnection();
+            
+            // Update password
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE users SET password = ?, updated_at = NOW() WHERE username = ? AND is_active = 1");
+            $stmt->bind_param('ss', $hashedPassword, $username);
+            
+            if ($stmt->execute() && $stmt->affected_rows > 0) {
+                jsonResponse(true, null, 'Password berhasil direset!');
+            } else {
+                jsonResponse(false, null, 'Gagal mereset password. Username tidak ditemukan.', 500);
+            }
+            
             $stmt->close();
             break;
             

@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                             <input type="checkbox" name="remember" class="w-4 h-4 text-eco border-slate-300 rounded focus:ring-eco">
                             <span class="text-sm text-slate-600">Ingat saya</span>
                         </label>
-                        <a href="#" class="text-sm text-eco hover:text-eco-dark font-medium">Lupa password?</a>
+                        <a href="/lupa_password.php" class="text-sm text-eco hover:text-eco-dark font-medium">Lupa password?</a>
                     </div>
 
                     <!-- Submit Button -->
@@ -186,20 +186,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
                     </button>
                 </form>
 
-                <!-- Demo Credentials Info -->
-                <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                    <p class="text-xs font-semibold text-blue-800 mb-2">
-                        <i class="fa-solid fa-circle-info mr-1"></i> Demo Credentials:
+                <!-- Register Link -->
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-slate-600">
+                        Belum punya akun? 
+                        <a href="/registrasi.php" class="text-eco hover:text-eco-dark font-bold hover:underline">
+                            Daftar Sekarang
+                        </a>
                     </p>
-                    <div class="text-xs text-blue-700 space-y-1">
-                        <p>Username: <code class="bg-blue-100 px-2 py-0.5 rounded font-mono">admin</code></p>
-                        <p>Password: <code class="bg-blue-100 px-2 py-0.5 rounded font-mono">admin123</code></p>
-                    </div>
                 </div>
 
                 <!-- Back to Home -->
-                <div class="mt-6 text-center">
-                    <a href="index.php" class="text-sm text-slate-500 hover:text-slate-700 inline-flex items-center gap-2">
+                <div class="mt-4 text-center">
+                    <a href="/" class="text-sm text-slate-500 hover:text-slate-700 inline-flex items-center gap-2">
                         <i class="fa-solid fa-arrow-left"></i>
                         Kembali ke Beranda
                     </a>

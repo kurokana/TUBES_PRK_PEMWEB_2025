@@ -343,7 +343,7 @@ $reports = $conn->query($reports_query);
             formData.append('new_role', newRole);
 
             try {
-                const res = await fetch('../utils/admin_utils.php', { method: 'POST', body: formData });
+                const res = await fetch('/api.php', { method: 'POST', body: formData });
                 const data = await res.json();
                 
                 if (data.success) {
@@ -369,7 +369,7 @@ $reports = $conn->query($reports_query);
             formData.append('is_active', newStatus);
 
             try {
-                const res = await fetch('../utils/admin_utils.php', { method: 'POST', body: formData });
+                const res = await fetch('/api.php', { method: 'POST', body: formData });
                 const data = await res.json();
                 
                 if (data.success) {

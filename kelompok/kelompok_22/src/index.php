@@ -35,23 +35,26 @@ if (empty($request_uri) || $request_uri === '/') {
         }
     } else {
         // Show landing page for visitors
-        require __DIR__ . '/src/frontend/pages/home.php';
+        require __DIR__ . '/frontend/pages/home.php';
         exit;
     }
 }
 
 // Define routes mapping
 $routes = [
-    '/login.php' => '/src/frontend/pages/login.php',
-    '/registrasi.php' => '/src/frontend/pages/registrasi.php',
-    '/pelapor.php' => '/src/frontend/pages/pelapor.php',
-    '/riwayat.php' => '/src/frontend/pages/riwayat.php',
-    '/profile.php' => '/src/frontend/pages/profile.php',
-    '/admin.php' => '/src/backend/controllers/admin.php',
-    '/petugas.php' => '/src/backend/controllers/petugas.php',
-    '/super_admin.php' => '/src/backend/controllers/super_admin.php',
-    '/logout.php' => '/src/backend/controllers/logout.php',
-    '/api.php' => '/src/backend/controllers/api.php',
+    '/home.php' => '/frontend/pages/home.php',
+    '/login.php' => '/frontend/pages/login.php',
+    '/registrasi.php' => '/frontend/pages/registrasi.php',
+    '/lupa_password.php' => '/frontend/pages/lupa_password.php',
+    '/pelapor.php' => '/frontend/pages/pelapor.php',
+    '/riwayat.php' => '/frontend/pages/riwayat.php',
+    '/profile.php' => '/frontend/pages/profile.php',
+    '/admin.php' => '/backend/controllers/admin.php',
+    '/petugas.php' => '/backend/controllers/petugas.php',
+    '/detail_tugas.php' => '/backend/controllers/detail_tugas.php',
+    '/super_admin.php' => '/backend/controllers/super_admin.php',
+    '/logout.php' => '/backend/controllers/logout.php',
+    '/api.php' => '/backend/controllers/api.php',
     '/test_upload.html' => '/test_upload.html',
     '/test_upload_warga.php' => '/test_upload_warga.php',
 ];
@@ -65,9 +68,16 @@ if (isset($routes[$request_uri])) {
     }
 }
 
-// Serve static files from /src/frontend/assets
-if (strpos($request_uri, '/src/frontend/assets/') === 0) {
-    $file = __DIR__ . $request_uri;
+// Serve static files from /frontend/assets or /src/frontend/assets
+if (strpos($request_uri, '/frontend/assets/') === 0 || strpos($request_uri, '/src/frontend/assets/') === 0) {
+    // Handle both /frontend/assets and /src/frontend/assets
+    if (strpos($request_uri, '/src/frontend/assets/') === 0) {
+        $relative_path = substr($request_uri, 4); // Remove '/src'
+    } else {
+        $relative_path = $request_uri;
+    }
+    
+    $file = __DIR__ . $relative_path;
     if (file_exists($file)) {
         $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         $mime_types = [
@@ -93,7 +103,29 @@ if (strpos($request_uri, '/src/frontend/assets/') === 0) {
 
 // Serve uploaded files from /uploads directory
 if (strpos($request_uri, '/uploads/') === 0) {
+    // Old path for compatibility
     $file = __DIR__ . $request_uri;
+    if (file_exists($file)) {
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $mime_types = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif'
+        ];
+        
+        if (isset($mime_types[$extension])) {
+            header('Content-Type: ' . $mime_types[$extension]);
+            readfile($file);
+            exit;
+        }
+    }
+}
+
+// Serve uploaded files from /src/uploads directory
+if (strpos($request_uri, '/src/uploads/') === 0) {
+    $relative_path = substr($request_uri, 4); // Remove '/src'
+    $file = __DIR__ . $relative_path;
     if (file_exists($file)) {
         $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         $mime_types = [

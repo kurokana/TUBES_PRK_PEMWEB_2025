@@ -6,7 +6,7 @@
  */
 
 // Path Configuration
-if (!defined('ROOT_PATH')) define('ROOT_PATH', dirname(dirname(dirname(__DIR__))));
+if (!defined('ROOT_PATH')) define('ROOT_PATH', dirname(dirname(dirname(__DIR__)))); // kelompok_22/
 if (!defined('SRC_PATH')) define('SRC_PATH', ROOT_PATH . '/src');
 if (!defined('BACKEND_PATH')) define('BACKEND_PATH', SRC_PATH . '/backend');
 if (!defined('FRONTEND_PATH')) define('FRONTEND_PATH', SRC_PATH . '/frontend');
@@ -18,8 +18,8 @@ define('DB_PASS', 'sipamali_password');
 define('DB_NAME', 'sipamali_db');
 
 // Konfigurasi Upload - Gunakan satu lokasi upload terpusat
-define('UPLOAD_DIR', ROOT_PATH . '/uploads/');
-define('UPLOAD_URL', '/uploads/');
+define('UPLOAD_DIR', SRC_PATH . '/uploads/');
+define('UPLOAD_URL', '/src/uploads/');
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);
 
@@ -128,7 +128,8 @@ function getAllReports($statusFilter = null) {
     
     $sql = "SELECT 
                 r.id, r.report_id, r.user_id, r.category, r.location, r.description,
-                r.status, r.priority, r.image_path, r.assigned_to, r.created_at, 
+                r.status, r.priority, r.image_path, r.assigned_to, r.created_at,
+                r.completion_image, r.completion_notes, r.admin_notes, r.resolved_at,
                 u.full_name as reported_by
             FROM reports r
             JOIN users u ON r.user_id = u.id";

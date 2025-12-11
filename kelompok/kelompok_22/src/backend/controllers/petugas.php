@@ -10,7 +10,7 @@ if (isset($_GET['logout'])) {
 
 require_once __DIR__ . '/../middleware/auth.php';
 requireLogin();
-$userInfo = getAdminInfo();
+$userInfo = getUserInfo();
 
 if (!$userInfo) { header('Location: ?logout=1'); exit; }
 $userRole = $_SESSION['role'] ?? $userInfo['role'] ?? '';
@@ -251,8 +251,17 @@ if ($userRole !== 'petugas' && $userRole !== 'admin') { header('Location: /'); e
                 const response = await fetch(`${API_URL}?action=getReports`);
                 const result = await response.json();
                 if (result.success) {
-                    renderTable(result.data);
-                    updateStats(result.data);
+                    // Filter hanya tugas yang ditugaskan ke petugas ini
+                    const myTasks = result.data.filter(item => {
+                        // Untuk petugas, hanya tampilkan yang assigned_to sesuai ID mereka
+                        if (CURRENT_USER_ROLE === 'petugas') {
+                            return item.assigned_to && Number(item.assigned_to) === Number(CURRENT_USER_ID);
+                        }
+                        // Untuk admin, tampilkan semua
+                        return true;
+                    });
+                    renderTable(myTasks);
+                    updateStats(myTasks);
                 }
             } catch (error) { console.error('Error:', error); }
         }
@@ -290,9 +299,8 @@ if ($userRole !== 'petugas' && $userRole !== 'admin') { header('Location: /'); e
                 // Logic Tombol Detail
                 let detailBtn = '';
                 const isAssignedToMe = item.assigned_to && Number(item.assigned_to) === Number(CURRENT_USER_ID);
-                const isAssignedToMyAgency = item.admin_notes && item.admin_notes === CURRENT_USER_AGENCY;
 
-                if (CURRENT_USER_ROLE === 'admin' || isAssignedToMe || isAssignedToMyAgency) {
+                if (CURRENT_USER_ROLE === 'admin' || isAssignedToMe) {
                     // Tombol untuk cek detail
                     detailBtn = `<a href="detail_tugas.php?id=${item.report_id}" class="text-smart hover:text-sky-700 text-xs font-bold flex items-center justify-end gap-1 transition">
                         Cek Detail <i class="fa-solid fa-arrow-right"></i>
