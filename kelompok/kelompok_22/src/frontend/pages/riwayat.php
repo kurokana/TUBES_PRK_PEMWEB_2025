@@ -15,7 +15,8 @@ if ($_SESSION['role'] !== 'pelapor') {
 
 $user = getCurrentUser();
 if (!$user) {
-    logout();
+    logoutUser();
+    header('Location: /login.php');
     exit;
 }
 

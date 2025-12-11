@@ -4,23 +4,23 @@
  * Handles routing for API and other endpoints
  */
 
-// Debug: Log every request
-file_put_contents('/tmp/router_debug.log', "\n\n=== ROUTER.PHP ===\n", FILE_APPEND);
-file_put_contents('/tmp/router_debug.log', "Time: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
-file_put_contents('/tmp/router_debug.log', "URI: " . $_SERVER['REQUEST_URI'] . "\n", FILE_APPEND);
-file_put_contents('/tmp/router_debug.log', "Method: " . $_SERVER['REQUEST_METHOD'] . "\n", FILE_APPEND);
-
 // Get the request URI and remove query string
 $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $request_uri = rtrim($request_uri, '/');
 
-// Define routes mapping
+// Prevent direct access to router
+if ($request_uri === '/router.php') {
+    http_response_code(404);
+    exit;
+}
 $routes = [
+    '/' => '/index.php',
     '/api.php' => '/src/backend/controllers/api.php',
     '/login.php' => '/src/frontend/pages/login.php',
     '/registrasi.php' => '/src/frontend/pages/registrasi.php',
     '/pelapor.php' => '/src/frontend/pages/pelapor.php',
     '/riwayat.php' => '/src/frontend/pages/riwayat.php',
+    '/profile.php' => '/src/frontend/pages/profile.php',
     '/admin.php' => '/src/backend/controllers/admin.php',
     '/petugas.php' => '/src/backend/controllers/petugas.php',
     '/super_admin.php' => '/src/backend/controllers/super_admin.php',

@@ -10,7 +10,7 @@ function loginUser($username, $password) {
     
     $username = sanitizeInput($username);
     
-    $stmt = $conn->prepare("SELECT id, username, full_name, role, password_hash FROM users WHERE username = ? AND is_active = 1"); 
+    $stmt = $conn->prepare("SELECT id, username, full_name, role, email, phone, password_hash FROM users WHERE username = ? AND is_active = 1"); 
     $stmt->bind_param('s', $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -35,7 +35,9 @@ function loginUser($username, $password) {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['full_name'] = $user['full_name'];
-    $_SESSION['role'] = $user['role']; 
+    $_SESSION['role'] = $user['role'];
+    $_SESSION['email'] = $user['email'];
+    $_SESSION['phone'] = $user['phone'];
     $_SESSION['login_time'] = time();
     
     $stmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?"); 
@@ -126,13 +128,22 @@ function getUserInfo() {
         return null;
     }
     
-    return [
-        'id' => $_SESSION['user_id'] ?? null,
-        'username' => $_SESSION['username'] ?? null,
-        'full_name' => $_SESSION['full_name'] ?? null,
-        'role' => $_SESSION['role'] ?? null, 
-        'login_time' => $_SESSION['login_time'] ?? null
-    ];
+    $conn = getDBConnection();
+    $user_id = $_SESSION['user_id'];
+    
+    $stmt = $conn->prepare("SELECT id, username, full_name, email, phone, role FROM users WHERE id = ?");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        return null;
+    }
+    
+    $user = $result->fetch_assoc();
+    $stmt->close();
+    
+    return $user;
 }
 
 function requireLogin() {
