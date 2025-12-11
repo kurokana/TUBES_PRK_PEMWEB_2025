@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS reports (
     category VARCHAR(50) NOT NULL,
     location VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    status ENUM('Menunggu', 'Diproses', 'Selesai') DEFAULT 'Menunggu',
+    status ENUM('Menunggu', 'Diproses', 'Selesai', 'Tuntas', 'Ditolak') DEFAULT 'Menunggu',
     image_path VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

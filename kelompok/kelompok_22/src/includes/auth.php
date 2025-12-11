@@ -1,31 +1,16 @@
 <?php
-/**
- * Authentication Handler untuk SiPaMaLi
- * Tugas Besar Praktikum Pemrograman Web 2025
- * Kelompok 22
- */
-
 require_once __DIR__ . '/config.php';
 
-// Start session jika belum
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/**
- * Login admin
- * @param string $username
- * @param string $password
- * @return array
- */
-function loginAdmin($username, $password) {
+function loginUser($username, $password) {
     $conn = getDBConnection();
     
-    // Sanitize input
     $username = sanitizeInput($username);
     
-    // Get user dari database
-    $stmt = $conn->prepare("SELECT * FROM admin_users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id, username, full_name, role, password_hash FROM users WHERE username = ? AND is_active = 1"); 
     $stmt->bind_param('s', $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -33,47 +18,44 @@ function loginAdmin($username, $password) {
     if ($result->num_rows === 0) {
         return [
             'success' => false,
-            'message' => 'Username atau password salah'
+            'message' => 'Username tidak terdaftar atau akun tidak aktif.'
         ];
     }
     
     $user = $result->fetch_assoc();
     
-    // Verify password
     if (!password_verify($password, $user['password_hash'])) {
         return [
             'success' => false,
-            'message' => 'Username atau password salah'
+            'message' => 'Username atau password salah.'
         ];
     }
     
-    // Set session
-    $_SESSION['admin_logged_in'] = true;
-    $_SESSION['admin_id'] = $user['id'];
-    $_SESSION['admin_username'] = $user['username'];
-    $_SESSION['admin_fullname'] = $user['full_name'];
+    $_SESSION['logged_in'] = true;
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['role'] = $user['role']; 
     $_SESSION['login_time'] = time();
     
-    // Update last login
-    $stmt = $conn->prepare("UPDATE admin_users SET last_login = NOW() WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?"); 
     $stmt->bind_param('i', $user['id']);
     $stmt->execute();
     
     return [
         'success' => true,
         'message' => 'Login berhasil',
+        'role' => $user['role'], 
         'user' => [
             'id' => $user['id'],
             'username' => $user['username'],
-            'full_name' => $user['full_name']
+            'full_name' => $user['full_name'],
+            'role' => $user['role']
         ]
     ];
 }
 
-/**
- * Logout admin
- */
-function logoutAdmin() {
+function logoutUser() {
     session_destroy();
     return [
         'success' => true,
@@ -81,59 +63,85 @@ function logoutAdmin() {
     ];
 }
 
-/**
- * Check apakah admin sudah login
- * @return bool
- */
-function isAdminLoggedIn() {
-    return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+function isUserLoggedIn() {
+    return isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 }
 
-/**
- * Get admin info dari session
- * @return array|null
- */
-function getAdminInfo() {
-    if (!isAdminLoggedIn()) {
+function getUserInfo() {
+    if (!isUserLoggedIn()) {
         return null;
     }
     
     return [
-        'id' => $_SESSION['admin_id'] ?? null,
-        'username' => $_SESSION['admin_username'] ?? null,
-        'full_name' => $_SESSION['admin_fullname'] ?? null,
+        'id' => $_SESSION['user_id'] ?? null,
+        'username' => $_SESSION['username'] ?? null,
+        'full_name' => $_SESSION['full_name'] ?? null,
+        'role' => $_SESSION['role'] ?? null, 
         'login_time' => $_SESSION['login_time'] ?? null
     ];
 }
 
-/**
- * Require login - redirect jika belum login
- */
 function requireLogin() {
-    if (!isAdminLoggedIn()) {
+    if (!isUserLoggedIn()) {
         header('Location: login.php');
         exit;
     }
 }
 
-/**
- * Redirect jika sudah login
- */
-function redirectIfLoggedIn() {
-    if (isAdminLoggedIn()) {
-        header('Location: admin.php');
+function requireRole($requiredRoles) {
+    requireLogin();
+
+    $currentUserRole = $_SESSION['role'] ?? 'guest';
+    
+    if (is_string($requiredRoles)) {
+        $requiredRoles = [$requiredRoles];
+    }
+    
+    if (!in_array($currentUserRole, $requiredRoles)) {
+        
+        if ($currentUserRole === 'admin') {
+            header("Location: admin.php"); 
+        } elseif ($currentUserRole === 'petugas') {
+            header("Location: petugas.php"); 
+        } else {
+            header("Location: index.php"); 
+        }
         exit;
     }
 }
 
-// Handle logout via GET parameter
+function requireAdmin() {
+    requireRole('admin');
+}
+
+function requirePetugas() {
+    requireRole('petugas');
+}
+
+function requireAdminOrPetugas() {
+    requireRole(['admin', 'petugas']);
+}
+
+function redirectIfLoggedIn() {
+    if (isUserLoggedIn()) {
+        $role = $_SESSION['role'] ?? 'warga';
+        if ($role === 'admin') {
+             header('Location: admin.php');
+        } elseif ($role === 'petugas') {
+             header('Location: petugas.php');
+        } else {
+             header('Location: index.php'); 
+        }
+        exit;
+    }
+}
+
 if (isset($_GET['logout'])) {
     session_destroy();
     header('Location: login.php');
     exit;
 }
 
-// Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
     
@@ -152,20 +160,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 exit;
             }
             
-            $result = loginAdmin($username, $password);
+            $result = loginUser($username, $password); 
             echo json_encode($result);
             exit;
         
         case 'logout':
-            $result = logoutAdmin();
+            $result = logoutUser();
             echo json_encode($result);
             exit;
         
         case 'check':
             echo json_encode([
                 'success' => true,
-                'logged_in' => isAdminLoggedIn(),
-                'user' => getAdminInfo()
+                'logged_in' => isUserLoggedIn(), 
+                'user' => getUserInfo() 
             ]);
             exit;
         

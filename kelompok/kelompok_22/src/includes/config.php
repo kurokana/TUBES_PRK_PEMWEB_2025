@@ -98,6 +98,45 @@ function generateReportId() {
     return 'RPT-' . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
 }
 
+// config.php (Revisi Fungsi getAllReports)
+
+function getAllReports($statusFilter = null) {
+    $db = getDBConnection(); 
+    
+    $sql = "SELECT 
+                r.id, r.report_id, r.user_id, r.category, r.location, r.description,
+                r.status, r.priority, r.image_path, r.assigned_to, r.created_at, 
+                u.full_name as reported_by
+            FROM reports r
+            JOIN users u ON r.user_id = u.id";
+            
+    // Logika Filtering: HANYA tambahkan WHERE jika filter tidak kosong
+    if (!empty($statusFilter)) {
+        // Penting: Escape string untuk mencegah SQL Injection
+        $cleanStatus = $db->real_escape_string($statusFilter);
+        $sql .= " WHERE r.status = '$cleanStatus'";
+    }
+    
+    $sql .= " ORDER BY r.created_at DESC"; // Tambahkan ORDER BY setelah WHERE
+
+    $result = $db->query($sql);
+    $reports = [];
+    
+    if ($result === false) {
+        // Jika terjadi error pada SQL
+        error_log("SQL Error in getAllReports: " . $db->error);
+        return [];
+    }
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $reports[] = $row;
+        }
+    }
+    
+    return $reports; 
+}
+
 /**
  * Fungsi untuk validasi file upload
  * @param array $file
